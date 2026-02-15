@@ -1,0 +1,37 @@
+# Ignore environment variables to prevent leaking secrets into images
+.env
+
+# Python artifacts
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Test artifacts
+test.db
+tests/
+
+# Documentation (not needed in production image)
+*.md
+ALEMBIC_CHEATSHEET.md
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Monitoring configs (separate infra)
+grafana/
+prometheus/
+loki/
+promtail/
+
+# Scripts not needed at runtime
+scripts/

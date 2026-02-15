@@ -1,0 +1,54 @@
+# ======= General =======
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Log files
+*.log
+*.log*
+
+
+# ======= Backend (Python / FastAPI) =======
+# Located in /backend/
+
+# Virtual environment
+backend/venv/
+backend/.venv/
+
+# Environment variables - CRITICAL
+backend/.env
+
+# Python cache & compiled files
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+
+
+# ======= Frontend (Node.js / Next.js) =======
+# Assuming it will be in a /frontend/ directory
+
+# Dependencies
+frontend/node_modules/
+
+# Build directory
+frontend/.next/
+frontend/out/
+
+# Local environment variables
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+backend/test.db
+reports/*
+archieve/*
+.trae/
+.env
