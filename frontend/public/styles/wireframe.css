@@ -1,0 +1,104 @@
+/**
+ * WIREFRAME MODE for FYP Documentation
+ * 
+ * Apply this to convert your app to black & white wireframes
+ * Usage: Add class "wireframe-mode" to <body> or root element
+ */
+
+.wireframe-mode {
+  /* Convert everything to grayscale */
+  filter: grayscale(100%) !important;
+  
+  /* Disable all animations and transitions */
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+.wireframe-mode * {
+  /* Remove shadows for cleaner wireframe look */
+  box-shadow: none !important;
+  text-shadow: none !important;
+  
+  /* Simplify borders to solid black/gray */
+  border-style: solid !important;
+  
+  /* Disable animations on all elements */
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Remove background images (keep layout but remove visual noise) */
+.wireframe-mode *:not(img) {
+  background-image: none !important;
+}
+
+/* Keep images grayscale but visible */
+.wireframe-mode img {
+  filter: grayscale(100%) !important;
+  opacity: 0.7 !important;
+}
+
+/* Simplify buttons to outlined style */
+.wireframe-mode button,
+.wireframe-mode [role="button"],
+.wireframe-mode a.button {
+  background: white !important;
+  color: black !important;
+  border: 2px solid black !important;
+}
+
+/* Ensure text is readable in black/white */
+.wireframe-mode {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+
+/* Disable hover effects */
+.wireframe-mode *:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Optional: Add wireframe grid overlay for better documentation */
+.wireframe-mode.show-grid {
+  background-image: 
+    linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Freeze scrolling animations */
+.wireframe-mode {
+  scroll-behavior: auto !important;
+}
+
+/* Remove gradient backgrounds */
+.wireframe-mode * {
+  background-image: none !important;
+}
+
+/* Simplify forms */
+.wireframe-mode input,
+.wireframe-mode textarea,
+.wireframe-mode select {
+  background: white !important;
+  color: black !important;
+  border: 1px solid #666 !important;
+}
+
+/* Show placeholder text clearly */
+.wireframe-mode input::placeholder,
+.wireframe-mode textarea::placeholder {
+  color: #999 !important;
+  opacity: 1 !important;
+}
+
+/* Remove icons/emoji if they're decorative (optional) */
+.wireframe-mode .icon,
+.wireframe-mode [class*="icon-"] {
+  opacity: 0.5 !important;
+}
