@@ -1,0 +1,236 @@
+/* Custom StreamChat Styling to match ATAS design */
+
+.stream-chat-wrapper {
+  font-family: inherit;
+}
+
+/* Override default header (we're using custom) */
+.str-chat__header-livestream {
+  display: none;
+}
+
+/* Message list container */
+.str-chat__list {
+  background: rgb(250 250 250 / 0.5);
+  padding: 1rem;
+}
+
+/* Individual messages */
+.str-chat__message {
+  margin-bottom: 1rem;
+}
+
+/* Message bubble */
+.str-chat__message-text-inner {
+  border-radius: 1rem !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+}
+
+/* Own messages (right side) */
+.str-chat__message--me .str-chat__message-text-inner {
+  background-color: rgb(24 24 27) !important;
+  color: white !important;
+  border-bottom-right-radius: 0.25rem !important;
+}
+
+/* Other messages (left side) */
+.str-chat__message--other .str-chat__message-text-inner {
+  background-color: white !important;
+  border: 1px solid rgb(228 228 231) !important;
+  color: rgb(24 24 27) !important;
+  border-bottom-left-radius: 0.25rem !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+/* Timestamp */
+.str-chat__message-data {
+  font-size: 11px !important;
+  color: rgb(161 161 170) !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Input container */
+.str-chat__input-flat {
+  background: white !important;
+  border-top: 1px solid rgb(228 228 231) !important;
+  padding: 1rem !important;
+}
+
+/* Textarea */
+.str-chat__textarea textarea {
+  background: rgb(250 250 250) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  resize: none !important;
+  max-height: 8rem !important;
+}
+
+.str-chat__message-textarea-container {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.str-chat__textarea textarea:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgb(250 204 21 / 0.5) !important;
+  border-color: rgb(250 204 21) !important;
+}
+
+/* Send button */
+.str-chat__send-button {
+  background: rgb(250 204 21) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem !important;
+  transition: all 0.2s !important;
+}
+
+.str-chat__send-button:hover {
+  background: rgb(234 179 8) !important;
+}
+
+.str-chat__send-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.str-chat__send-button svg {
+  fill: rgb(24 24 27) !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* Fix for Thread View layout issues */
+.str-chat__thread .str-chat__message-text-inner {
+  width: fit-content !important;
+  max-width: 100% !important;
+  min-width: 2rem !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.str-chat__thread .str-chat__message-simple-text-inner {
+  width: fit-content !important;
+}
+
+/* Ensure thread input doesn't look squashed */
+.str-chat__thread .str-chat__input-flat {
+  padding: 0.5rem !important;
+}
+
+/* Avatar */
+.str-chat__avatar {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 9999px !important;
+}
+
+.str-chat__avatar-image {
+  border-radius: 9999px !important;
+}
+
+/* Empty state */
+.str-chat__list--empty {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  color: rgb(161 161 170) !important;
+  font-size: 14px !important;
+}
+
+/* Thread */
+.str-chat__thread {
+  border-left: 1px solid rgb(228 228 231) !important;
+  background: white !important;
+}
+
+/* Typing indicator */
+.str-chat__typing-indicator {
+  color: rgb(113 113 122) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+/* Date separator */
+.str-chat__date-separator {
+  color: rgb(161 161 170) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  margin: 1.5rem 0 !important;
+}
+
+/* Scrollbar */
+.str-chat__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.str-chat__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb {
+  background: rgb(212 212 216);
+  border-radius: 3px;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb:hover {
+  background: rgb(161 161 170);
+}
+
+/* Loading */
+.str-chat__loading-indicator {
+  color: rgb(250 204 21) !important;
+}
+
+/* Fix for Thread View being squashed */
+.str-chat__thread {
+  min-width: 320px !important;
+  width: 350px !important;
+  flex-shrink: 0 !important;
+  background: white !important;
+  border-left: 1px solid rgb(228 228 231) !important;
+  z-index: 10 !important;
+}
+
+/* Ensure container handles flex correctly */
+.str-chat__channel {
+  width: 100%;
+  /* display: flex !important;
+  flex-direction: row !important;
+  overflow: hidden !important;
+  position: relative !important; */
+}
+
+/* Responsive Thread: Overlay on smaller screens or when space is tight */
+@media (max-width: 1024px) {
+  .str-chat__thread {
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    max-width: 400px !important; /* Allow it to be partial overlay on tablets, full on mobile */
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .str-chat__thread {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/* Thread Header styling to match */
+.str-chat__thread-header {
+  height: 64px !important;
+  padding: 0 1rem !important;
+  border-bottom: 1px solid rgb(228 228 231) !important;
+}
+
