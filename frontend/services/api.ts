@@ -1109,6 +1109,21 @@ export const sendChatMessage = async (conversationId: string, content: string) =
   return response.data
 }
 
+// --- DIY Chat ---
+
+export const getDIYChannels = async () => {
+  const response = await api.get<import('./api.types').ChatConversation[]>('/chat/channels')
+  return response.data
+}
+
+export const getDIYMessages = async (channelId: string, offset = 0, limit = 50) => {
+  const response = await api.get<import('./api.types').ChatMessage[]>(`/chat/channels/${channelId}/messages`, {
+    params: { offset, limit }
+  })
+  return response.data
+}
+
+
 // GetStream Chat Token
 export interface StreamTokenResponse {
   token: string

@@ -761,6 +761,8 @@ export interface ChatMessage {
 
 export interface ChatConversation {
     id: string
+    name?: string | null
+    type?: 'direct' | 'group' | 'event_room'
     created_at: string
     updated_at: string
     participants: ChatParticipant[]
