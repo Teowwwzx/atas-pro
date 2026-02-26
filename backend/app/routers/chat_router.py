@@ -160,7 +160,10 @@ def create_or_get_conversation(
                 return _format_conversation_response(conv, current_user.id, db)
 
     # Create new conversation
-    new_conv = Conversation()
+    new_conv = Conversation(
+        name=conv_in.name,
+        type=conv_in.type
+    )
     db.add(new_conv)
     db.commit()
     db.refresh(new_conv)
@@ -390,6 +393,8 @@ def _format_conversation_response(conv: Conversation, current_user_id: uuid.UUID
 
     return ConversationResponse(
         id=conv.id,
+        name=conv.name,
+        type=conv.type,
         created_at=conv.created_at,
         updated_at=conv.updated_at,
         participants=participants_resp,

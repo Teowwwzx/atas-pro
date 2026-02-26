@@ -1112,13 +1112,13 @@ export const sendChatMessage = async (conversationId: string, content: string) =
 // --- DIY Chat ---
 
 export const getDIYChannels = async () => {
-  const response = await api.get<import('./api.types').ChatConversation[]>('/chat/channels')
+  const response = await api.get<import('./api.types').ChatConversation[]>('/chat/conversations')
   return response.data
 }
 
-export const getDIYMessages = async (channelId: string, offset = 0, limit = 50) => {
-  const response = await api.get<import('./api.types').ChatMessage[]>(`/chat/channels/${channelId}/messages`, {
-    params: { offset, limit }
+export const getDIYMessages = async (channelId: string, skip = 0, limit = 50) => {
+  const response = await api.get<import('./api.types').ChatMessage[]>(`/chat/conversations/${channelId}/messages`, {
+    params: { skip, limit }
   })
   return response.data
 }
