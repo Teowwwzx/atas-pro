@@ -51,4 +51,7 @@ backend/test.db
 reports/*
 archieve/*
 .trae/
+# Runtime artifacts
+backend/gunicorn.ctl
+*.sock
 .env

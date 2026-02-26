@@ -59,8 +59,9 @@
 | **Vector DB**    | pgvector             | Native vector storage for AI embeddings without external dependencies. |
 | **Graph DB**     | Neo4j                | Optimized for traversing deep social/mentorship relationships.         |
 | **Caching/MQ**   | Redis 7              | In-memory speed for caching and Celery message brokering.              |
-| **Workers**      | Celery               | Robust distributed task queue for background processing.               |
-| **Real-Time**    | WebSocket      | Instant notifications and mentorship chat sessions.                    |
+| **Workers**      | Celery                             | Robust distributed task queue for background processing.               |
+| **Real-Time**    | FastAPI WebSockets + Redis Pub/Sub | Scalable 1:1 and group chat mechanism, instant notifications.          |
+| **Video Calls**  | Jitsi Meet (Self-Hosted)           | Secure, embedded WebRTC meetings to keep users on-platform.            |
 
 ## 📂 Project Structure (Clean Architecture)
 
@@ -116,11 +117,15 @@ docker-compose up --build
   
   - Dockerization, Redis Caching (Cache-Aside), and Celery integration.
 
-- **Phase 2: Graph & AI (Current Focus)**
+- **Phase 2: Graph, AI & Community (Current Focus)**
   
   - Neo4j implementation for Alumni Recommendations.
   
   - LLM-based Resume/Profile Analysis.
+  
+  - **Community Discussions:** Native REST-based discussion boards (Posts, Comments, Likes).
+  
+  - **Communications:** DIY Real-time WebSocket Chat + self-hosted Jitsi video meetings to maximize on-platform retention.
 
 - **Phase 3: Microservices Transition (Target: Bybit/Fintech Standards)**
   
