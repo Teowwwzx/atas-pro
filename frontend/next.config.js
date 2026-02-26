@@ -18,6 +18,7 @@ const nextConfig = {
   turbopack: {
     root: path.join(__dirname)
   },
+  allowedDevOrigins: ['127.0.0.1'],
   async redirects() {
     return [
       {
