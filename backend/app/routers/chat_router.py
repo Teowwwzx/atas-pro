@@ -1,10 +1,13 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, and_, desc, or_
 from typing import List
 import uuid
 import asyncio
+import json
+
+from app.services.chat_manager import manager as chat_manager
 
 from app.database.database import get_db
 from app.models.chat_model import Conversation, ConversationParticipant, Message
@@ -411,3 +414,36 @@ def _format_message_response(msg: Message) -> MessageResponse:
         sender_name=sender_name,
         sender_avatar=sender_avatar
     )
+
+# ==================== WebSocket Endpoints ====================
+
+@router.websocket("/ws/{conversation_id}")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    conversation_id: str,
+    # In production, extract token from Query or Headers for Auth
+    token: str = Query(None)
+):
+    # MVP: Currently accepting any connection and simulating user ID.
+    # We will need to validate the JWT token here.
+    user_id = str(uuid.uuid4()) # Placeholder for anonymous/unverified user
+    
+    await chat_manager.connect(websocket, conversation_id, user_id)
+    try:
+        while True:
+            # Wait for messages from the connected client
+            data = await websocket.receive_text()
+            
+            # Construct the payload to broadcast
+            message_payload = {
+                "sender_id": user_id,
+                "content": data,
+                "conversation_id": conversation_id,
+                "type": "new_message",
+            }
+            
+            # Broadcast via Redis Pub/Sub to all workers
+            await chat_manager.broadcast_to_channel(conversation_id, message_payload)
+            
+    except WebSocketDisconnect:
+        chat_manager.disconnect(websocket, conversation_id)
