@@ -25,21 +25,6 @@ class NotificationService:
         db.commit()
         db.refresh(notif)
         
-        # Broadcast to SSE if user is connected
-        import asyncio
-        from app.services.sse_manager import sse_manager
-        import logging
-        logger = logging.getLogger(__name__)
-        
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(sse_manager.send_to_user(recipient_id, notif))
-        except RuntimeError:
-            # No event loop running, skip SSE broadcast
-            logger.warning(f"Skipping SSE broadcast for notification {notif.id} - no running event loop")
-            pass
-        
         return notif
 
     @staticmethod

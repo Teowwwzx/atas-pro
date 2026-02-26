@@ -34,9 +34,6 @@ async def lifespan(app: FastAPI):
     # Close Redis connection
     await async_redis_client.aclose()
     
-    # Close SSE connections
-    from app.services.sse_manager import sse_manager
-    await sse_manager.broadcast_shutdown()
     
     # Close database connections gracefully to prevent "stuck" reloads
     engine.dispose()

@@ -291,7 +291,7 @@ def discover_profiles_count(
     total = db.query(subq.c.id).count()
     return {"total_count": total}
 
-@router.get("/semantic-search", response_model=List[ProfileResponse], dependencies=[Depends(RateLimiter(times=30, seconds=3600))])
+@router.get("/semantic-search", response_model=List[ProfileResponse])
 def semantic_search_profiles(
     request: Request,
     embedding: str | None = None,

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
 import uuid
 import asyncio
 import json
@@ -8,9 +7,8 @@ from sqlalchemy.sql import func
 from app.database.database import get_db
 from app.models.notification_model import Notification, NotificationType
 from app.schemas.notification_schema import NotificationResponse, NotificationReadAllResponse
-from app.dependencies import get_current_user, require_roles, get_current_user_sse
+from app.dependencies import get_current_user, require_roles
 from app.models.user_model import User
-from app.services.sse_manager import sse_manager
 
 router = APIRouter()
 
@@ -72,53 +70,6 @@ def get_unread_notifications_count(db: Session = Depends(get_db), current_user: 
     )
     return {"unread_count": count}
 
-@router.get("/notifications/stream")
-async def stream_notifications(current_user: User = Depends(get_current_user_sse)):
-    """
-    Server-Sent Events endpoint for real-time notifications.
-    Keeps connection open and streams new notifications as they arrive.
-    """
-    async def event_generator():
-        # Register this user's connection
-        queue = await sse_manager.connect(current_user.id)
-        
-        try:
-            # Send initial connection confirmation
-            yield f"data: {json.dumps({'type': 'connected', 'message': 'SSE stream established'})}\n\n"
-            
-            while True:
-                try:
-                    # Wait for notification with timeout (30 seconds for heartbeat)
-                    notification_data = await asyncio.wait_for(queue.get(), timeout=30.0)
-                    
-                    # Check for shutdown signal
-                    if isinstance(notification_data, dict) and notification_data.get("type") == "shutdown":
-                        break
-
-                    # Send notification as SSE event
-                    yield f"data: {json.dumps(notification_data)}\n\n"
-                    
-                except asyncio.TimeoutError:
-                    # Send heartbeat ping to keep connection alive
-                    yield f": ping\n\n"
-                    
-        except asyncio.CancelledError:
-            # Client disconnected
-            pass
-        finally:
-            # Clean up connection
-            sse_manager.disconnect(current_user.id)
-    
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",  # Disable nginx buffering
-        }
-    )
-
 
 from pydantic import BaseModel
 
@@ -151,7 +102,7 @@ async def broadcast_notification(
     
     notifications = []
     for user in users:
-        # Use NotificationService to automatically broadcast via SSE
+        # Use NotificationService to create notification
         from app.services.notification_service import NotificationService
         notif = NotificationService.create_notification(
             db=db,

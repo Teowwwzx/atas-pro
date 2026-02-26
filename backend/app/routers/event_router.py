@@ -149,7 +149,7 @@ def _verify_user_attendance_token(token: str) -> tuple[uuid.UUID, uuid.UUID]:
 
 # ... imports ...
 
-@router.get("/events/count", response_model=dict, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
+@router.get("/events/count", response_model=dict)
 def count_events(
     q_text: str | None = Query(None),
     status: EventStatus | None = Query(None),
@@ -259,7 +259,7 @@ def count_events(
         
     return result
 
-@router.get("/events", response_model=List[EventDetails], dependencies=[Depends(RateLimiter(times=20, seconds=60))])
+@router.get("/events", response_model=List[EventDetails])
 def get_all_events(
     db: Session = Depends(get_db),
     category_id: uuid.UUID | None = Query(None),
