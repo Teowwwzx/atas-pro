@@ -1,17 +1,17 @@
 services:
   postgres:
     image: pgvector/pgvector:pg15
-    container_name: atas_postgres
+    container_name: atas_pro_chat_postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-atas_pro}
-      POSTGRES_USER: ${POSTGRES_USER:-atas_pro_user}
+      POSTGRES_DB: ${POSTGRES_DB:-atas_pro_chat}
+      POSTGRES_USER: ${POSTGRES_USER:-atas_pro_chat_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123123}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pro_chat_postgres_data:/var/lib/postgresql/data
     networks:
-      - atas_network
+      - atas_pro_chat_network
     ports:
-      - "5433:5432"
+      - "5434:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
@@ -21,14 +21,14 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: atas_redis
+    container_name: atas_pro_chat_redis
     command: [ "redis-server", "--appendonly", "yes" ]
     volumes:
-      - redis_data:/data
+      - pro_chat_redis_data:/data
     networks:
-      - atas_network
+      - atas_pro_chat_network
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -38,12 +38,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: atas_rabbitmq
+    container_name: atas_pro_chat_rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5673:5672"
+      - "15673:15672"
     networks:
-      - atas_network
+      - atas_pro_chat_network
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
@@ -54,19 +54,19 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: atas_api
+    container_name: atas_pro_chat_api
     env_file:
       - .env
     environment:
       # Override infrastructure URLs for Docker network (overrides .env localhost values)
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-atas_pro_user}:${POSTGRES_PASSWORD:-123123}@postgres:5432/${POSTGRES_DB:-atas_pro}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-atas_pro_chat_user}:${POSTGRES_PASSWORD:-123123}@postgres:5432/${POSTGRES_DB:-atas_pro_chat}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
     volumes:
       - ./backend:/app
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,19 +75,19 @@ services:
       rabbitmq:
         condition: service_healthy
     networks:
-      - atas_network
+      - atas_pro_chat_network
     restart: unless-stopped
 
   worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: atas_worker
+    container_name: atas_pro_chat_worker
     env_file:
       - .env
     environment:
       # Override infrastructure URLs for Docker network (overrides .env localhost values)
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-atas_pro_user}:${POSTGRES_PASSWORD:-123123}@postgres:5432/${POSTGRES_DB:-atas_pro}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-atas_pro_chat_user}:${POSTGRES_PASSWORD:-123123}@postgres:5432/${POSTGRES_DB:-atas_pro_chat}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/1
@@ -101,14 +101,14 @@ services:
       rabbitmq:
         condition: service_healthy
     networks:
-      - atas_network
+      - atas_pro_chat_network
     restart: unless-stopped
     command: [ "celery", "-A", "app.core.celery_app.celery_app", "worker", "-l", "info", "--concurrency=2" ]
 
 networks:
-  atas_network:
-    name: atas_network
+  atas_pro_chat_network:
+    name: atas_pro_chat_network
 
 volumes:
-  postgres_data:
-  redis_data:
+  pro_chat_postgres_data:
+  pro_chat_redis_data:
