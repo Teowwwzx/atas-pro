@@ -2,9 +2,7 @@
 import React from 'react'
 import { ChatConversation } from '@/services/api.types'
 import { format } from 'date-fns'
-import { ChannelList, Chat, ChannelPreviewUIComponentProps } from 'stream-chat-react'
-import { CustomChannelPreview } from './CustomChannelPreview'
-import type { StreamChat } from 'stream-chat'
+
 
 interface ConversationListProps {
     conversations: ChatConversation[]
@@ -12,10 +10,9 @@ interface ConversationListProps {
     currentUserId: string
     onSelect: (id: string) => void
     loading?: boolean
-    client?: StreamChat | null
 }
 
-export function ConversationList({ conversations, selectedId, currentUserId, onSelect, loading, client }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, currentUserId, onSelect, loading }: ConversationListProps) {
     if (loading) {
         return (
             <div className="space-y-4 p-4">
@@ -32,39 +29,7 @@ export function ConversationList({ conversations, selectedId, currentUserId, onS
         )
     }
 
-    // Use Stream Chat List if client is available
-    if (client) {
-        const filters = { type: 'messaging', members: { $in: [currentUserId] } };
-        const sort = { last_message_at: -1 as const };
-        const options = { limit: 20 };
 
-        const PreviewWrapper = (props: ChannelPreviewUIComponentProps) => (
-            <CustomChannelPreview 
-                {...props} 
-                onSelect={() => {
-                    // Extract raw UUID from channel ID (e.g. legacy_UUID -> UUID)
-                    const rawId = props.channel?.id ? props.channel.id.replace('legacy_', '') : '';
-                    if (rawId) {
-                        onSelect(rawId);
-                    }
-                }} 
-            />
-        );
-
-        return (
-            <div className="h-full stream-chat-list-wrapper">
-                <Chat client={client} theme="str-chat__theme-light">
-                    <ChannelList 
-                        filters={filters}
-                        sort={sort}
-                        options={options}
-                        Preview={PreviewWrapper}
-                        showChannelSearch={false}
-                    />
-                </Chat>
-            </div>
-        );
-    }
 
     if (conversations.length === 0) {
         return (

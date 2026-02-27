@@ -256,6 +256,16 @@ async def send_message(
     
     db.commit()
     db.refresh(new_msg)
+    
+    formatted_msg = _format_message_response(new_msg)
+
+    # --- Broadcast via Redis to all active WebSockets ---
+    from fastapi.encoders import jsonable_encoder
+    message_payload = {
+        "type": "chat_message",
+        "data": jsonable_encoder(formatted_msg)
+    }
+    await chat_manager.broadcast_to_channel(str(conversation_id), message_payload)
 
     # --- Notification Logic ---
     # Notify other participants
@@ -426,29 +436,28 @@ def _format_message_response(msg: Message) -> MessageResponse:
 async def websocket_endpoint(
     websocket: WebSocket,
     conversation_id: str,
-    # In production, extract token from Query or Headers for Auth
     token: str = Query(None)
 ):
-    # MVP: Currently accepting any connection and simulating user ID.
-    # We will need to validate the JWT token here.
-    user_id = str(uuid.uuid4()) # Placeholder for anonymous/unverified user
-    
+    if not token:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    from app.core.security import decode_access_token
+    payload = decode_access_token(token)
+    if not payload or "sub" not in payload:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    user_id = payload["sub"]
+
     await chat_manager.connect(websocket, conversation_id, user_id)
     try:
         while True:
-            # Wait for messages from the connected client
+            # We no longer process messages sent directly via WebSocket
+            # The client uses the REST API for sending to ensure DB safety
+            # But we must keep the loop alive to keep the connection open
             data = await websocket.receive_text()
-            
-            # Construct the payload to broadcast
-            message_payload = {
-                "sender_id": user_id,
-                "content": data,
-                "conversation_id": conversation_id,
-                "type": "new_message",
-            }
-            
-            # Broadcast via Redis Pub/Sub to all workers
-            await chat_manager.broadcast_to_channel(conversation_id, message_payload)
+            # Ignore incoming data
             
     except WebSocketDisconnect:
         chat_manager.disconnect(websocket, conversation_id)

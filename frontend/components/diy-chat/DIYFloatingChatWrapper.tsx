@@ -6,7 +6,7 @@ import { getDIYChannels, getMe } from '@/services/api'
 import { ChatConversation, UserMeResponse } from '@/services/api.types'
 import { ChatBubbleIcon, Cross2Icon, SizeIcon } from '@radix-ui/react-icons'
 import { Transition } from '@headlessui/react'
-import { DIYChatInner } from './DIYChatInner'
+import { DIYChatWindow } from './DIYChatWindow'
 
 export function DIYFloatingChatWrapper() {
     const [isOpen, setIsOpen] = useState(false)
@@ -115,9 +115,10 @@ export function DIYFloatingChatWrapper() {
                             </div>
                         ) : selectedId && selectedConv && me ? (
                             <div className="absolute inset-0 flex flex-col bg-white">
-                                <DIYChatInner
-                                    channel={selectedConv}
-                                    currentUser={me}
+                                <DIYChatWindow
+                                    conversation={selectedConv}
+                                    currentUserId={me.id}
+                                    onBack={() => setSelectedId(null)}
                                 />
                             </div>
                         ) : (

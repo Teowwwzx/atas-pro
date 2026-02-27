@@ -5,8 +5,7 @@ import React, { useEffect, useState, Suspense } from 'react'
 import { getConversations, getMe } from '@/services/api'
 import { ChatConversation, UserMeResponse } from '@/services/api.types'
 import { ConversationList } from './components/ConversationList'
-import { StreamChatWindow } from './components/StreamChatWindow'
-import { useStreamChat } from '@/hooks/useStreamChat'
+import { DIYChatWindow } from '@/components/diy-chat/DIYChatWindow'
 import { toast } from 'react-hot-toast'
 import { useSearchParams } from 'next/navigation'
 
@@ -21,8 +20,7 @@ function MessagesContent() {
     const initialConvId = searchParams.get('conversation_id')
     const initialText = searchParams.get('initial_text')
 
-    // Initialize Stream Chat (shared client)
-    const { client } = useStreamChat(me?.id);
+
 
     useEffect(() => {
         const init = async () => {
@@ -91,19 +89,17 @@ function MessagesContent() {
                         currentUserId={me?.id || ''}
                         onSelect={setSelectedId}
                         loading={loading}
-                        client={client} // Pass client
                     />
                 </div>
 
                 {/* Chat Window */}
                 <div className={`flex-1 flex flex-col ${!selectedId ? 'hidden md:flex' : 'flex'}`}>
                     {selectedConv && me ? (
-                        <StreamChatWindow
+                        <DIYChatWindow
                             conversation={selectedConv}
                             currentUserId={me.id}
                             onMessageSent={refreshList}
                             onBack={() => setSelectedId(null)}
-                            client={client} // Pass client
                             initialText={initialText || undefined}
                         />
                     ) : (

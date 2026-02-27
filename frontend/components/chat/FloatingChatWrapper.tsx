@@ -5,8 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { getConversations, getMe } from '@/services/api'
 import { ChatConversation, UserMeResponse } from '@/services/api.types'
 import { ConversationList } from '@/app/(app)/messages/components/ConversationList'
-import { StreamChatWindow } from '@/app/(app)/messages/components/StreamChatWindow'
-import { useStreamChat } from '@/hooks/useStreamChat'
+import { DIYChatWindow } from '@/components/diy-chat/DIYChatWindow'
+
 import { ChatBubbleIcon, Cross2Icon, SizeIcon } from '@radix-ui/react-icons'
 import { Transition } from '@headlessui/react'
 
@@ -18,49 +18,7 @@ export function FloatingChatWrapper() {
     const [loading, setLoading] = useState(true)
     const [unreadCount, setUnreadCount] = useState(0)
 
-    // Initialize Stream Chat (shared client)
-    const { client } = useStreamChat(me?.id);
 
-    // Listen for new messages to update unread count
-    useEffect(() => {
-        if (!client) return;
-
-        const updateCount = () => {
-            // Type assertion to access total_unread_count
-            const user = client.user as any;
-            if (user?.total_unread_count !== undefined) {
-                setUnreadCount(user.total_unread_count);
-            }
-        };
-
-        const handleNewMessage = (event: any) => {
-            // Check if the event carries the new unread count directly
-            if (event.total_unread_count !== undefined) {
-                setUnreadCount(event.total_unread_count);
-            } else if (event.user?.total_unread_count !== undefined) {
-                 setUnreadCount(event.user.total_unread_count);
-            } else {
-                 // Fallback: increment locally or fetch
-                 updateCount();
-            }
-        };
-
-        const handleNotification = () => {
-            updateCount();
-        };
-
-        // Initial check
-        updateCount();
-
-        client.on('notification.message_new', handleNewMessage);
-        client.on('notification.mark_read', handleNotification);
-        // Also listen to general changes if needed
-
-        return () => {
-            client.off('notification.message_new', handleNewMessage);
-            client.off('notification.mark_read', handleNotification);
-        };
-    }, [client]); // Removed isOpen dependency so we track background unread properly
 
     const router = useRouter()
     const pathname = usePathname()
@@ -124,12 +82,8 @@ export function FloatingChatWrapper() {
         try {
             const data = await getConversations()
             setConversations(data)
-            // We rely on client events for unread count mostly, but we can update here too
             const totalUnread = data.reduce((acc, c) => acc + c.unread_count, 0)
-            const user = client?.user as any;
-            if (user?.total_unread_count === undefined) {
-                setUnreadCount(totalUnread)
-            }
+            setUnreadCount(totalUnread)
         } catch (error) {
             console.error(error)
         }
@@ -189,13 +143,12 @@ export function FloatingChatWrapper() {
                         ) : selectedId && selectedConv && me ? (
                             <div className="absolute inset-0 flex flex-col bg-white">
                                 <div className="flex-1 overflow-hidden">
-                                    <StreamChatWindow
+                                    <DIYChatWindow
                                         conversation={selectedConv}
                                         currentUserId={me.id}
                                         onMessageSent={refreshList}
                                         onBack={() => setSelectedId(null)}
                                         forceBackVisible={true}
-                                        client={client}
                                     />
                                 </div>
                             </div>
@@ -207,7 +160,6 @@ export function FloatingChatWrapper() {
                                     currentUserId={me?.id || ''}
                                     onSelect={setSelectedId}
                                     loading={loading}
-                                    client={client}
                                 />
                             </div>
                         )}

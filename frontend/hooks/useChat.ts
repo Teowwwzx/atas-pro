@@ -1,138 +1,131 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getChatMessages, sendChatMessage } from '@/services/api';
 
-// Defines the structure of a chat message returned by the backend
-export interface Message {
+export interface ChatMessage {
     id: string;
-    conversation_id: string;
-    sender_id: string;
     content: string;
-    is_read: boolean;
+    sender_id: string;
+    conversation_id: string;
     created_at: string;
-    sender_name?: string | null;
-    sender_avatar?: string | null;
-    type?: 'new_message' | 'system';
+    sender?: {
+        full_name: string;
+        avatar_url: string;
+        id?: string;
+    };
 }
 
-interface UseChatProps {
-    conversationId: string | null;
-    token?: string; // Optional JWT token for auth
-}
-
-export function useChat({ conversationId, token }: UseChatProps) {
-    const [messages, setMessages] = useState<Message[]>([]);
+export function useChat(conversationId: string | null) {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isConnected, setIsConnected] = useState(false);
-    const [isReconnecting, setIsReconnecting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const hasFetchedHistoryRef = useRef<string | null>(null);
+
+    // Initial load from REST API
+    const loadHistory = useCallback(async (convId: string) => {
+        try {
+            setIsLoadingHistory(true);
+            const response = await getChatMessages(convId);
+            // Reverse so oldest is top, newest is bottom
+            setMessages(response.reverse());
+            hasFetchedHistoryRef.current = convId;
+        } catch (error) {
+            console.error('Failed to load chat history:', error);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    }, []);
 
     const connect = useCallback(() => {
         if (!conversationId) return;
 
-        // Clear any existing connection
-        if (wsRef.current) {
-            wsRef.current.close();
-        }
+        const token = localStorage.getItem('atas_token');
+        if (!token) return;
 
-        // Connect to WebSocket
-        // We assume the backend runs on port 8000 for local chat dev (or dynamically from env)
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-        // Convert http to ws
-        const wsUrl = backendUrl.replace(/^http/, 'ws');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+        const wsUrl = `${API_URL.replace('http', 'ws')}/api/v1/chat/ws/${conversationId}?token=${token}`;
 
-        // Construct the full WebSocket URL
-        let url = `${wsUrl}/api/v1/chat/ws/${conversationId}`;
-        if (token) {
-            url += `?token=${encodeURIComponent(token)}`;
-        }
+        const ws = new WebSocket(wsUrl);
 
-        try {
-            const ws = new WebSocket(url);
-            wsRef.current = ws;
+        ws.onopen = () => {
+            console.log('Connected to chat via WebSocket');
+            setIsConnected(true);
 
-            ws.onopen = () => {
-                setIsConnected(true);
-                setIsReconnecting(false);
-                setError(null);
-            };
+            // Fetch history only once per conversation when connecting
+            if (hasFetchedHistoryRef.current !== conversationId) {
+                loadHistory(conversationId);
+            }
+        };
 
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-
-                    if (data.type === 'new_message') {
-                        // Transform the Redis payload into our local Message format
-                        // In a full implementation, the backend should send full MessageResponse schemas
-                        const newMsg: Message = {
-                            id: crypto.randomUUID(), // Temporary ID until backend assigns one properly in its payload
-                            conversation_id: data.conversation_id,
-                            sender_id: data.sender_id,
-                            content: data.content,
-                            is_read: false,
-                            created_at: new Date().toISOString(),
-                            sender_name: data.sender_name || 'Unknown',
-                            type: 'new_message'
-                        };
-
-                        setMessages(prev => [...prev, newMsg]);
-                    }
-                } catch (err) {
-                    console.error('Failed to parse websocket message', err);
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'chat_message') {
+                    setMessages(prev => {
+                        // Filter out duplicates (often happens if sent locally vs echo from server)
+                        if (prev.find(m => m.id === data.data.id)) return prev;
+                        return [...prev, data.data];
+                    });
                 }
-            };
+            } catch (err) {
+                console.error('Failed to parse websocket message', err);
+            }
+        };
 
-            ws.onclose = () => {
-                setIsConnected(false);
-                // Attempt auto-reconnect if we didn't explicitly clear the conversation ID
-                if (conversationId) {
-                    setIsReconnecting(true);
-                    reconnectTimeoutRef.current = setTimeout(connect, 3000); // Retry after 3 seconds
-                }
-            };
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+            setIsConnected(false);
+            wsRef.current = null;
+            // Reconnect
+            reconnectTimeoutRef.current = setTimeout(connect, 3000);
+        };
 
-            ws.onerror = (ev: Event) => {
-                console.error('WebSocket Error', ev);
-                setError('Failed to connect to chat server');
-                // onclose will be triggered immediately after onerror
-            };
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            ws.close();
+        };
 
-        } catch (err: any) {
-            setError(err.message || 'Failed to establish connection');
-        }
-    }, [conversationId, token]);
+        wsRef.current = ws;
 
-    // Initial connection
+    }, [conversationId, loadHistory]);
+
     useEffect(() => {
+        // Reset state when switching conversations
+        if (conversationId !== hasFetchedHistoryRef.current) {
+            setMessages([]);
+            hasFetchedHistoryRef.current = null;
+        }
+
         connect();
 
         return () => {
-            // Cleanup
-            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
             if (wsRef.current) {
+                wsRef.current.onclose = null; // Prevent reconnect loop
                 wsRef.current.close();
             }
         };
-    }, [connect]);
+    }, [connect, conversationId]);
 
-    // Send message function
-    const sendMessage = useCallback((content: string) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            // For MVP, we pass pure text. The backend will parse it or accept it directly as text.
-            // Wait, in chat_router.py: data = await websocket.receive_text()
-            // So we just send raw text.
-            wsRef.current.send(content);
-        } else {
-            setError("Cannot send message. Disconnected.");
+    const sendMessage = useCallback(async (content: string) => {
+        if (!conversationId) return false;
+        try {
+            await sendChatMessage(conversationId, content);
+            return true;
+        } catch (error) {
+            console.error('Failed to send message via REST API:', error);
+            return false;
         }
-    }, []);
+    }, [conversationId]);
 
     return {
         messages,
-        setMessages, // Useful for pre-filling with REST API initial load
         isConnected,
-        isReconnecting,
-        error,
+        isLoadingHistory,
         sendMessage
     };
 }

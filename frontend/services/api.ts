@@ -799,6 +799,8 @@ export const updateEventLogo = async (eventId: string, file: File) => {
   return response.data
 }
 
+
+
 export const updateEventCover = async (eventId: string, file: File) => {
   const fd = new FormData()
   fd.append('file', file)
